@@ -1,0 +1,23 @@
+#screen
+{
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  width: 50%;
+  height: 50%;
+  border: 1px solid black;
+}
+#player
+{
+  position: relative;
+  width: 10px;
+  height: 10px;
+  background-color: black;
+}
+.enemy
+{
+  position: relative;
+  width: 10px;
+  height: 10px;
+  background-color: red;
+}
