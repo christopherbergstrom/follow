@@ -4,6 +4,7 @@ var down = true;
 var left = true;
 var right = true;
 var space = true;
+var bombs = [];
 var intUp;
 var intDown;
 var intLeft;
@@ -25,6 +26,27 @@ $(document).ready(function()
   comp = $(".enemy");
   movePlayer();
   moveComp();
+  gameLoop();
+  // tracks if enemy hits bomb
+  function gameLoop()
+  {
+    window.setInterval(function()
+    {
+      $(".enemy").each(function()
+      {
+        var enemy = $(this);
+        for (var i = 0; i < bombs.length; i++)
+        {
+          if (collision(enemy, bombs[i]))
+          {
+            bombs[i].remove();
+            bombs.splice(i, 1);
+            enemy.remove();
+          }
+        }
+      });
+    }, 10);
+  }
   function movePlayer()
   {
     
@@ -120,8 +142,17 @@ $(document).ready(function()
       }
       if (e.which === 32)
       {
-        // space = true;
-        dropBomb();
+        // can only have a max of 10 bombs on screen at once
+        if (bombs.length < 3)
+        {
+          dropBomb();
+        }
+        else
+        {
+          bombs[0].remove();
+          bombs.shift();
+          dropBomb();
+        }
       }
     });
   }
@@ -204,5 +235,24 @@ $(document).ready(function()
     // shot.css({"left":e.pageX, "top":e.pageY});
     // where it drops
     shot.css({"left":player.position().left+5, "top":player.position().top+5});
+    bombs.push(shot);
+  }
+  function collision($div1, $div2)
+  {
+    var x1 = $div1.offset().left;
+    var y1 = $div1.offset().top;
+    var h1 = $div1.outerHeight(true);
+    var w1 = $div1.outerWidth(true);
+    var b1 = y1 + h1;
+    var r1 = x1 + w1;
+    var x2 = $div2.offset().left;
+    var y2 = $div2.offset().top;
+    var h2 = $div2.outerHeight(true);
+    var w2 = $div2.outerWidth(true);
+    var b2 = y2 + h2;
+    var r2 = x2 + w2;
+  
+    if (b1 < y2 || y1 > b2 || r1 < x2 || x1 > r2) return false;
+    return true;
   }
 });
