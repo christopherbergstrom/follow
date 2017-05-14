@@ -3,6 +3,7 @@ var up = true;
 var down = true;
 var left = true;
 var right = true;
+var space = true;
 var intUp;
 var intDown;
 var intLeft;
@@ -13,7 +14,7 @@ var vert = 0;
 var horz = 0;
 var comp;
 var compInt;
-var compSpeed = 1;
+var compSpeed = 0.2;
 var compVert = 10;
 var compHorz = 0;
 $(document).ready(function()
@@ -64,7 +65,7 @@ $(document).ready(function()
         }, 1);
       }
       // down
-      else if (pressed[40] && down)
+      if (pressed[40] && down)
       {
         down = false;
         intDown = setInterval(function()
@@ -74,10 +75,15 @@ $(document).ready(function()
           player.css("top", vert+"px");
         }, 1);
       }
+      // if (pressed[32] && space)
+      // {
+      //   space = false;
+      //   dropBomb();
+      // }
     }).keyup(function(e)
     {
       pressed[e.which] = false;
-      if (e.which == 37 || e.which == 38 || e.which == 39 ||e.which == 40)
+      if (e.which == 37 || e.which == 38 || e.which == 39 || e.which == 40)
       {
         if (!left && !pressed[37])
         {
@@ -87,7 +93,7 @@ $(document).ready(function()
             left = true;
           }
         }
-        else if (!up && !pressed[38])
+        if (!up && !pressed[38])
         {
           if (intUp)
           {
@@ -95,7 +101,7 @@ $(document).ready(function()
             up = true;
           }
         }
-        else if (!right && !pressed[39])
+        if (!right && !pressed[39])
         {
           if (intRight)
           {
@@ -103,7 +109,7 @@ $(document).ready(function()
             right = true;
           }
         }
-        else if (!down && !pressed[40])
+        if (!down && !pressed[40])
         {
           if (intDown)
           {
@@ -111,6 +117,11 @@ $(document).ready(function()
             down = true;
           }
         }
+      }
+      if (e.which === 32)
+      {
+        // space = true;
+        dropBomb();
       }
     });
   }
@@ -135,7 +146,6 @@ $(document).ready(function()
   }
   function compCheck()
   {
-    console.log("in compCheck");
     if (compVert < 0)
     {
       compVert = 0;
@@ -155,42 +165,44 @@ $(document).ready(function()
   }
   function moveComp()
   {
-    console.log("in moveComp");
     compInt = setInterval(function()
     {
-      // console.log("in compInt");
       // above player
-      if ((compVert) < vert)
+      if ((compVert + 5) < vert + 5)
       {
         compVert += compSpeed;
         compCheck();
         comp.css("top", compVert+"px");
       }
       // below player
-      else if ((compVert) > vert)
+      else if ((compVert + 5) > vert + 5)
       {
         compVert -= compSpeed;
         compCheck();
         comp.css("top", compVert+"px");
       }
       // left of player
-      else if ((compHorz) < horz)
+      if ((compHorz + 5) < horz + 5)
       {
         compHorz += compSpeed;
         compCheck();
         comp.css("left", compHorz+"px");
       }
       // right of player
-      else if ((compHorz) > horz)
+      else if ((compHorz + 5) > horz + 5)
       {
         compHorz -= compSpeed;
         compCheck();
         comp.css("left", compHorz+"px");
       }
-      // else
-      // {
-      //   console.log("in else");
-      // }
     }, 1);
+  }
+  function dropBomb()
+  {
+    var shot = $("<div class='shot'/>");
+    $("#screen").append(shot);
+    // shot.css({"left":e.pageX, "top":e.pageY});
+    // where it drops
+    shot.css({"left":player.position().left+5, "top":player.position().top+5});
   }
 });
