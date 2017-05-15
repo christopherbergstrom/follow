@@ -5,6 +5,7 @@ var left = true;
 var right = true;
 var space = true;
 var bombs = [];
+var enemies = [];
 var intUp;
 var intDown;
 var intLeft;
@@ -13,43 +14,69 @@ var player;
 var playerSpeed = 1;
 var vert = 0;
 var horz = 0;
+var level = 20;
 var comp;
-var compInt;
 var compSpeed = 0.2;
-var compVert = 10;
-var compHorz = 0;
+var compCount = 0
 $(document).ready(function()
 {
-  $("#screen").append("<div id='player'/>");
-  player = $("#player");
-  $("#screen").append("<div class='enemy'/>");
-  comp = $(".enemy");
-  movePlayer();
-  moveComp();
-  gameLoop();
+  vert = $("#screen").innerHeight()/2;
+  horz = $("#screen").innerWidth()/2;
+  $("#play").click(function()
+  {
+    this.remove();
+    play();
+  });
+  function play()
+  {
+    player = {element:$("<div id='player'/>"), vert:vert, horz:horz, speed:playerSpeed};
+    $("#screen").append(player.element);
+    movePlayer();
+    makeEnemies();
+    gameLoop();
+  }
+  function makeEnemies()
+  {
+    level++;
+    window.setTimeout(function()
+    {
+      for (var i = 0; i < level; i++)
+      {
+        createComp();
+        compCount++;
+      }
+    }, 1000);
+  }
   // tracks if enemy hits bomb
   function gameLoop()
   {
     window.setInterval(function()
     {
-      $(".enemy").each(function()
+      // fix editing enemies length mid loop
+      for (var i = 0; i < enemies.length; i++)
       {
-        var enemy = $(this);
-        for (var i = 0; i < bombs.length; i++)
+        moveComp(enemies[i]);
+        for (var j = 0; j < bombs.length; j++)
         {
-          if (collision(enemy, bombs[i]))
+          if (collision(enemies[i].element, bombs[j]))
           {
-            bombs[i].remove();
-            bombs.splice(i, 1);
-            enemy.remove();
+            bombs[j].remove();
+            bombs.splice(j, 1);
+            enemies[i].element.remove();
+            // clearInterval(enemies[i].compInt);
+            enemies.splice(i, 1);
+            compCount--;
+            if (compCount === 0)
+            {
+              makeEnemies();
+            }
           }
         }
-      });
-    }, 10);
+      }
+    }, 1);
   }
   function movePlayer()
   {
-    
     $(document).keydown(function(e)
     {
       pressed[e.which] = true;
@@ -59,9 +86,9 @@ $(document).ready(function()
         left = false;
         intLeft = setInterval(function()
         {
-          horz -= playerSpeed;
-          playerCheck();
-          player.css("left", horz+"px");
+          player.horz -= playerSpeed;
+          check(player);
+          player.element.css("left", player.horz+"px");
         }, 1);
       }
       // up
@@ -70,9 +97,9 @@ $(document).ready(function()
         up = false;
         intUp = setInterval(function()
         {
-          vert -= playerSpeed;
-          playerCheck();
-          player.css("top", vert+"px");
+          player.vert -= playerSpeed;
+          check(player);
+          player.element.css("top", player.vert+"px");
         }, 1);
       }
       // right
@@ -81,9 +108,9 @@ $(document).ready(function()
         right = false;
         intRight = setInterval(function()
         {
-          horz += playerSpeed;
-          playerCheck();
-          player.css("left", horz+"px");
+          player.horz += playerSpeed;
+          check(player);
+          player.element.css("left", player.horz+"px");
         }, 1);
       }
       // down
@@ -92,16 +119,11 @@ $(document).ready(function()
         down = false;
         intDown = setInterval(function()
         {
-          vert += playerSpeed;
-          playerCheck();
-          player.css("top", vert+"px");
+          player.vert += playerSpeed;
+          check(player);
+          player.element.css("top", player.vert+"px");
         }, 1);
       }
-      // if (pressed[32] && space)
-      // {
-      //   space = false;
-      //   dropBomb();
-      // }
     }).keyup(function(e)
     {
       pressed[e.which] = false;
@@ -156,77 +178,58 @@ $(document).ready(function()
       }
     });
   }
-  function playerCheck()
+  function check(comp)
   {
-    if(vert < 0)
+    if (comp.vert < 0)
     {
-      vert = 0;
+      comp.vert = 0;
     }
-    else if ((vert + 10) > $("#screen").innerHeight())
+    else if ((comp.vert + 10) > $("#screen").innerHeight())
     {
-      vert = ($("#screen").innerHeight() - 10);
+      comp.vert = ($("#screen").innerHeight() - 10);
     }
-    else if (horz < 0)
+    else if (comp.horz < 0)
     {
-      horz = 0;
+      comp.horz = 0;
     }
-    else if ((horz + 10) > $("#screen").innerWidth())
+    else if ((comp.horz + 10) > $("#screen").innerWidth())
     {
-      horz = ($("#screen").innerWidth() - 10);
+      comp.horz = ($("#screen").innerWidth() - 10);
     }
   }
-  function compCheck()
+  function moveComp(comp)
   {
-    if (compVert < 0)
-    {
-      compVert = 0;
-    }
-    else if ((compVert + 10) > $("#screen").innerHeight())
-    {
-      compVert = ($("#screen").innerHeight() - 10);
-    }
-    else if (compHorz < 0)
-    {
-      compHorz = 0;
-    }
-    else if ((compHorz + 10) > $("#screen").innerWidth())
-    {
-      compHorz = ($("#screen").innerWidth() - 10);
-    }
-  }
-  function moveComp()
-  {
-    compInt = setInterval(function()
-    {
+    // comp.compInt = setInterval(function()
+    // {
       // above player
-      if ((compVert + 5) < vert + 5)
+      if ((comp.vert + 5) < player.vert + 5)
       {
-        compVert += compSpeed;
-        compCheck();
-        comp.css("top", compVert+"px");
+        comp.vert += comp.speed;
+        check(comp);
+        comp.element.css("top", comp.vert+"px");
       }
       // below player
-      else if ((compVert + 5) > vert + 5)
+      else if ((comp.vert + 5) > player.vert + 5)
       {
-        compVert -= compSpeed;
-        compCheck();
-        comp.css("top", compVert+"px");
+        comp.vert -= comp.speed;
+        check(comp);
+        comp.element.css("top", comp.vert+"px");
       }
       // left of player
-      if ((compHorz + 5) < horz + 5)
+      if ((comp.horz + 5) < player.horz + 5)
       {
-        compHorz += compSpeed;
-        compCheck();
-        comp.css("left", compHorz+"px");
+        comp.horz += comp.speed;
+        check(comp);
+        comp.element.css("left", comp.horz+"px");
       }
       // right of player
-      else if ((compHorz + 5) > horz + 5)
+      else if ((comp.horz + 5) > player.horz + 5)
       {
-        compHorz -= compSpeed;
-        compCheck();
-        comp.css("left", compHorz+"px");
+        comp.horz -= comp.speed;
+        check(comp);
+        comp.element.css("left", comp.horz+"px");
       }
-    }, 1);
+    // }, 1);
   }
   function dropBomb()
   {
@@ -234,8 +237,55 @@ $(document).ready(function()
     $("#screen").append(shot);
     // shot.css({"left":e.pageX, "top":e.pageY});
     // where it drops
-    shot.css({"left":player.position().left+5, "top":player.position().top+5});
+    shot.css({"left":player.element.position().left+2, "top":player.element.position().top+2});
     bombs.push(shot);
+  }
+  function createComp()
+  {
+    var x;
+    var y;
+    var spawn = Math.floor(Math.random()*4);
+    switch (spawn)
+    {
+      // top
+      case 0:
+      {
+        x = Math.floor(Math.random()*$("#screen").innerWidth());
+        y = 0;
+        break;
+      }
+      // bottom
+      case 1:
+      {
+        x = Math.floor(Math.random()*$("#screen").innerWidth());
+        y = $("#screen").innerHeight() - 10;
+        break;
+      }
+      // left
+      case 2:
+      {
+        x = 0
+        y = Math.floor(Math.random()*$("#screen").innerHeight());
+        break;
+      }
+      // right
+      case 3:
+      {
+        x = $("#screen").innerWidth() - 10;
+        y = Math.floor(Math.random()*$("#screen").innerHeight());
+        break;
+      }
+      default:
+      {
+        x = 0;
+        y = 0;
+      }
+    }
+    var comp = {element:$("<div class='enemy'/>"), vert:y, horz:x, speed:compSpeed};
+    enemies.push(comp);
+    $("#screen").append(comp.element);
+    comp.element.css({"top":y+"px", "left":x+"px"});
+    moveComp(comp);
   }
   function collision($div1, $div2)
   {
